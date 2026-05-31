@@ -28,6 +28,7 @@ MP.LOBBY = {
 	blind_col = 1,
 	host = {},
 	guest = {},
+	players = {},
 	is_host = false,
 	ready_to_start = false,
 }
@@ -313,4 +314,10 @@ MP.load_mp_dir("objects/challenges")
 local SOCKET = MP.load_mp_file(networking_dir .. "/socket.lua")
 MP.NETWORKING_THREAD = love.thread.newThread(SOCKET)
 MP.NETWORKING_THREAD:start(SMODS.Mods["Multiplayer"].config.server_url, SMODS.Mods["Multiplayer"].config.server_port)
+if MP and type(MP.ACTIONS) == "table" then
+    -- MP.ACTIONS is valid and safe to use!
+    sendTraceMessage("MP.ACTIONS is fully valid.", "MULTIPLAYER")
+else
+    sendTraceMessage("Warning: MP or MP.ACTIONS is missing or invalid.", "MULTIPLAYER")
+end
 MP.ACTIONS.connect()

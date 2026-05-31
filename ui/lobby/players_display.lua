@@ -24,14 +24,25 @@ local function create_player_info_row(player, player_type, text_scale)
 end
 
 function MP.UI.create_players_section(text_scale)
-	return MP.UI.UTILS.create_column({ align = "tm", minw = 2.65 }, {
+	local player_rows = {create_player_info_row(MP.LOBBY.host, "host", text_scale)}
+	for i, player in ipairs(MP.LOBBY.players) do
+		sendTraceMessage("player HASSSSSSSSSS JOOOOOOOOOOOIIIIIIIIIIIIIIIIIINNNNNNNNNNNNNNNNNNEEEEEEEEEEEEEEEEEDDDDDDD", "MULTIPLAYER")
+		table.insert(player_rows, create_player_info_row(player, "guest", text_scale))
+	end
+
+
+	local rows = {
 		MP.UI.UTILS.create_row({ align = "cm", padding = 0.15 }, {
 			MP.UI.UTILS.create_text_node(localize("k_connect_player"), {
 				scale = text_scale * 0.8,
 				colour = G.C.UI.TEXT_LIGHT,
 			}),
-		}),
-		create_player_info_row(MP.LOBBY.host, "host", text_scale),
-		create_player_info_row(MP.LOBBY.guest, "guest", text_scale),
-	})
+		})
+	}
+
+	for i, player in ipairs(player_rows) do
+		table.insert(rows, player)
+	end
+
+	return MP.UI.UTILS.create_column({ align = "tm", minw = 2.65 }, rows)
 end

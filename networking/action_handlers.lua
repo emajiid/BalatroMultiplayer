@@ -138,8 +138,8 @@ local function action_enemyReconnected()
 	MP.UI.UTILS.overlay_message("Opponent reconnected!")
 end
 
-local function action_lobbyInfo(host, hostHash, hostCached, guest, guestHash, guestCached, guestReady, is_host)
-	MP.LOBBY.players = {}
+local function action_lobbyInfo(host, hostHash, hostCached, players, playersHash, playersCached, playersReady, is_host)
+	-- MP.LOBBY.players = {}
 	MP.LOBBY.is_host = is_host
 	local function parseName(name)
 		local username, col_str = string.match(name, "([^~]+)~(%d+)")
@@ -159,24 +159,37 @@ local function action_lobbyInfo(host, hostHash, hostCached, guest, guestHash, gu
 		config = hostConfig,
 	}
 
-	if guest ~= nil then
-		local guestName, guestCol = parseName(guest)
-		local guestConfig, guestMods = MP.UTILS.parse_Hash(guestHash)
-		MP.LOBBY.guest = {
-			username = guestName,
-			blind_col = guestCol,
-			hash_str = guestMods,
-			hash = hash(guestMods),
-			cached = guestCached,
-			config = guestConfig,
-		}
-	else
-		MP.LOBBY.guest = {}
-	end
+
+	local players_ready = false
+	if players ~= nil then
+		for i, player in ipairs(players) do
+			local playerName, playerCol = parseName(player)
+			local playerConfig, playerMods = MP.UTILS.parse_Hash(playersHash[i])
+			table.insert(MP.LOBBY.players, {
+				username = playerName,
+				blind_col = playerCol,
+				hash_str = playerMods,
+				hash = hash(playerMods),
+				cached = playersCached[i],
+				config = playerConfig
+			})
+		end
+	
 
 	-- TODO: This should check for player count instead
 	-- once we enable more than 2 players
-	MP.LOBBY.ready_to_start = guest ~= nil and guestReady
+		players_ready = true
+		for i, status in ipairs(playersReady) do
+			if(not status) then
+				players_ready = false
+			end
+		end
+		if (#playersReady == 0) then
+			players_ready = false
+		end
+	end
+
+	MP.LOBBY.ready_to_start = players_ready
 
 	if MP.LOBBY.is_host then MP.ACTIONS.lobby_options() end
 
