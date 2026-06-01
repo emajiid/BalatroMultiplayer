@@ -138,7 +138,33 @@ local function action_enemyReconnected()
 	MP.UI.UTILS.overlay_message("Opponent reconnected!")
 end
 
-local function action_lobbyInfo(host, hostHash, hostCached, players, playersHash, playersCached, playersReady, is_host)
+-- Turn any characters that were needed for parsing back into their original characters
+function MP.UTILS.postProcessStringFromNetwork(str)
+	local processed_str = str
+
+	-- Seperated each call for readability's sake
+	processed_str = string.gsub(processed_str, "{a}", ",") -- Needed to seperate action values
+	processed_str = string.gsub(processed_str, "{b}", ":") -- Needed to parse action values
+
+	processed_str = string.gsub(processed_str, "{c}", "|") -- Needed to seperate sub-list entries
+	processed_str = string.gsub(processed_str, "{d}", "-") -- Needed to seperate sub-list entry values
+	processed_str = string.gsub(processed_str, "{e}", ">") -- Needed to parse sub-list entry values
+
+	return processed_str
+end
+
+function MP.UTILS.string_to_table(str, pair_seperator, key_value_seperator)
+	local tbl = {}
+	for part in string.gmatch(str, "([^"..pair_seperator.."]+)") do
+		local key, value = string.match(part, "([^"..key_value_seperator.."]+)"..key_value_seperator.."(.+)")
+		if key and value then
+			tbl[key] = value
+		end
+	end
+	return tbl
+end
+
+local function action_lobbyInfo(host, hostHash, hostCached, players, is_host)
 	-- MP.LOBBY.players = {}
 	MP.LOBBY.is_host = is_host
 	local function parseName(name)
@@ -159,34 +185,34 @@ local function action_lobbyInfo(host, hostHash, hostCached, players, playersHash
 		config = hostConfig,
 	}
 
+	local players_ready = true
+	MP.LOBBY.players = {}
+	if players then
+		for k, v in string.gmatch(players, "([^\\|]+)") do
+			local player = MP.UTILS.string_to_table(k, ">", "-")
 
-	local players_ready = false
-	if players ~= nil then
-		for i, player in ipairs(players) do
-			local playerName, playerCol = parseName(player)
-			local playerConfig, playerMods = MP.UTILS.parse_Hash(playersHash[i])
-			table.insert(MP.LOBBY.players, {
-				username = playerName,
-				blind_col = playerCol,
-				hash_str = playerMods,
-				hash = hash(playerMods),
-				cached = playersCached[i],
-				config = playerConfig
-			})
-		end
-	
+			if player.username then
+				sendTraceMessage("WE MADE IT!!!!!" .. players, "MULTIPLAYER")
+				local playerName, playerCol = parseName(MP.UTILS.postProcessStringFromNetwork(player.username))
+				local playerConfig, playerMods = MP.UTILS.parse_Hash(MP.UTILS.postProcessStringFromNetwork(player.hash))
 
-	-- TODO: This should check for player count instead
-	-- once we enable more than 2 players
-		players_ready = true
-		for i, status in ipairs(playersReady) do
-			if(not status) then
-				players_ready = false
+				if MP.UTILS.postProcessStringFromNetwork(player.ready) == "false" then
+					players_ready = false
+				end
+				sendTraceMessage("USERNAME BEFORE! " .. player.username, "MULTIPLAYER")
+				table.insert(MP.LOBBY.players, {
+						username = MP.UTILS.postProcessStringFromNetwork(player.username),
+						blind_col = playerCol,
+						hash_str = playerMods,
+						hash = hash(playerMods),
+						cached = MP.UTILS.postProcessStringFromNetwork(player.cached) == "true",
+						config = playerConfig
+					})
+				sendTraceMessage("USERNAME AFTER! " .. MP.LOBBY.players[1].username, "MULTIPLAYER")
 			end
 		end
-		if (#playersReady == 0) then
-			players_ready = false
-		end
+	else
+		players_ready = false
 	end
 
 	MP.LOBBY.ready_to_start = players_ready
@@ -1239,10 +1265,7 @@ function Game:update(dt)
 					parsedAction.host,
 					parsedAction.hostHash,
 					parsedAction.hostCached,
-					parsedAction.guest,
-					parsedAction.guestHash,
-					parsedAction.guestCached,
-					parsedAction.guestReady,
+					parsedAction.players,
 					parsedAction.isHost
 				)
 			elseif parsedAction.action == "startGame" then
