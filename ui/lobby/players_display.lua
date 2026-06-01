@@ -1,4 +1,4 @@
-local function create_player_info_row(player, player_type, text_scale)
+local function create_player_info_row(player, player_type, text_scale, index)
 	if not player or not player.username then return nil end
 
 	return MP.UI.UTILS.create_row({ padding = 0.1, align = "cm" }, {
@@ -10,7 +10,7 @@ local function create_player_info_row(player, player_type, text_scale)
 		}),
 		MP.UI.UTILS.create_blank(0.1, 0.1),
 		player.hash and UIBox_button({
-			id = player_type .. "_hash",
+			id = index,
 			button = "view_" .. player_type .. "_hash",
 			label = { player.hash },
 			minw = 0.75,
@@ -24,11 +24,11 @@ local function create_player_info_row(player, player_type, text_scale)
 end
 
 function MP.UI.create_players_section(text_scale)
-	local player_rows = {create_player_info_row(MP.LOBBY.host, "host", text_scale)}
+	local player_rows = {create_player_info_row(MP.LOBBY.host, "host", text_scale, 0)}
 	sendTraceMessage("PRINTING OUT NAMES FOR UI ", "MULTIPLAYER")
 	for i, player in ipairs(MP.LOBBY.players) do
 		sendTraceMessage("NAME NUMBER: " .. i .. player.username, "MULTIPLAYER")
-		table.insert(player_rows, create_player_info_row(player, "guest", text_scale))
+		table.insert(player_rows, create_player_info_row(player, "guest", text_scale, i))
 	end
 
 

@@ -185,14 +185,20 @@ function G.UIDEF.create_UIBox_custom_seed_overlay()
 	})
 end
 
-function G.UIDEF.create_UIBox_view_hash(type)
+function G.UIDEF.create_UIBox_view_hash(index)
+	local mods
+	if index == 0 then
+		mods = MP.LOBBY.host.config.Mods
+	else
+		mods = MP.LOBBY.players[index].config.Mods
+	end
 	return (
 		create_UIBox_generic_options({
 			contents = {
 				MP.UI.UTILS.create_column(
 					{ padding = 0.07, align = "cm" },
 					MP.UI.modlist_to_view(
-						type == "host" and MP.LOBBY.host.config.Mods or MP.LOBBY.guest.config.Mods,
+						mods,
 						G.C.UI.TEXT_LIGHT
 					)
 				),
@@ -233,13 +239,13 @@ end
 
 G.FUNCS.view_host_hash = function(e)
 	G.FUNCS.overlay_menu({
-		definition = G.UIDEF.create_UIBox_view_hash("host"),
+		definition = G.UIDEF.create_UIBox_view_hash(e.config.id),
 	})
 end
 
 G.FUNCS.view_guest_hash = function(e)
 	G.FUNCS.overlay_menu({
-		definition = G.UIDEF.create_UIBox_view_hash("guest"),
+		definition = G.UIDEF.create_UIBox_view_hash(e.config.id),
 	})
 end
 
