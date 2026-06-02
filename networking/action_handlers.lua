@@ -300,13 +300,20 @@ end
 ---@param score_str string
 ---@param hands_left_str string
 ---@param skips_str string
-local function action_enemy_info(id, score_str, hands_left_str, skips_str, lives_str)
-	sendTraceMessage("WEEEEEEEEEEE AREEEEEEEEEEEEE GETTTTTTTTTTTTING ENEMY INFO!!!", "MULTIPLAYER")
+local function action_enemy_info(id, hands_left_str, score_str, skips_str, lives_str)
+	if MP.GAME.enemies[id] == nil then
+		MP.initiate_enemies()
+	end
+
 	local score = MP.INSANE_INT.from_string(score_str)
 
 	local hands_left = tonumber(hands_left_str)
 	local skips = tonumber(skips_str)
 	local lives = tonumber(lives_str)
+
+	sendTraceMessage("id we got " .. id , "MULTIPLAYER")
+	sendTraceMessage("host id we have " .. MP.LOBBY.host.id , "MULTIPLAYER")
+	sendTraceMessage("trying to see if enemy exists" .. MP.GAME.enemies[id].score_text, "MULTIPLAYER")
 
 	if MP.GAME.enemies[id].skips ~= skips then
 		for i = 1, skips - MP.GAME.enemies[id].skips do
@@ -1278,7 +1285,7 @@ function Game:update(dt)
 			elseif parsedAction.action == "startBlind" then
 				action_start_blind()
 			elseif parsedAction.action == "enemyInfo" then
-				action_enemy_info(parsedAction.score, parsedAction.handsLeft, parsedAction.skips, parsedAction.lives)
+				action_enemy_info(parsedAction.id, parsedAction.handsLeft, parsedAction.score, parsedAction.skips, parsedAction.lives)
 			elseif parsedAction.action == "stopGame" then
 				action_stop_game()
 			elseif parsedAction.action == "endPvP" then

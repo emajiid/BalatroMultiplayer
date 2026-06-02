@@ -195,31 +195,36 @@ MP.reset_lobby_config()
 
 function MP.initiate_enemies()
 	sendTraceMessage("INITIATING ENEMIES!!!", "MULTIPLAYER")
-	MP.GAME.enemies[MP.LOBBY.host.id] = {
-			score = MP.INSANE_INT.empty(),
-			score_text = "0",
-			hands = 4,
-			location = localize("loc_selecting"),
-			skips = 0,
-			lives = MP.LOBBY.config.starting_lives,
-			sells = 0,
-			sells_per_ante = {},
-			spent_in_shop = {},
-			highest_score = MP.INSANE_INT.empty(),
-		}
+	if MP.LOBBY.is_host == false then
+		sendTraceMessage("INITIATING HOST!!!!", "MULTIPLAYER")
+		MP.GAME.enemies[MP.LOBBY.host.id] = {
+				score = MP.INSANE_INT.empty(),
+				score_text = "0",
+				hands = 4,
+				location = localize("loc_selecting"),
+				skips = 0,
+				lives = MP.LOBBY.config.starting_lives,
+				sells = 0,
+				sells_per_ante = {},
+				spent_in_shop = {},
+				highest_score = MP.INSANE_INT.empty(),
+			}
+	end
 	for i, player in pairs(MP.LOBBY.players) do
-		MP.GAME.enemies[i] = {
-			score = MP.INSANE_INT.empty(),
-			score_text = "0",
-			hands = 4,
-			location = localize("loc_selecting"),
-			skips = 0,
-			lives = MP.LOBBY.config.starting_lives,
-			sells = 0,
-			sells_per_ante = {},
-			spent_in_shop = {},
-			highest_score = MP.INSANE_INT.empty(),
-		}
+		if i ~= MP.LOBBY.id then
+			MP.GAME.enemies[i] = {
+				score = MP.INSANE_INT.empty(),
+				score_text = "0",
+				hands = 4,
+				location = localize("loc_selecting"),
+				skips = 0,
+				lives = MP.LOBBY.config.starting_lives,
+				sells = 0,
+				sells_per_ante = {},
+				spent_in_shop = {},
+				highest_score = MP.INSANE_INT.empty(),
+			}
+		end
 	end
 end
 
