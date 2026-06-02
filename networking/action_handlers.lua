@@ -165,7 +165,7 @@ function MP.UTILS.string_to_table(str, pair_seperator, key_value_seperator)
 	return tbl
 end
 
-local function action_lobbyInfo(host, hostHash, hostCached, players, is_host)
+local function action_lobbyInfo(host, hostId, hostHash, hostCached, players, is_host)
 	-- MP.LOBBY.players = {}
 	MP.LOBBY.is_host = is_host
 	local function parseName(name)
@@ -178,6 +178,7 @@ local function action_lobbyInfo(host, hostHash, hostCached, players, is_host)
 	local hostName, hostCol = parseName(host)
 	local hostConfig, hostMods = MP.UTILS.parse_Hash(hostHash)
 	MP.LOBBY.host = {
+		id = hostId,
 		username = hostName,
 		blind_col = hostCol,
 		hash_str = hostMods,
@@ -199,8 +200,6 @@ local function action_lobbyInfo(host, hostHash, hostCached, players, is_host)
 				if MP.UTILS.postProcessStringFromNetwork(player.ready) == "false" then
 					players_ready = false
 				end
-				sendTraceMessage("ID FROM JOIN " .. MP.LOBBY.id, "MULTIPLAYER")
-				sendTraceMessage("ID FROM LOBBY " .. player.id, "MULTIPLAYER")
 				MP.LOBBY.players[player.id]={
 						username = MP.UTILS.postProcessStringFromNetwork(player.username),
 						blind_col = playerCol,
@@ -301,16 +300,17 @@ end
 ---@param score_str string
 ---@param hands_left_str string
 ---@param skips_str string
-local function action_enemy_info(score_str, hands_left_str, skips_str, lives_str)
+local function action_enemy_info(id, score_str, hands_left_str, skips_str, lives_str)
+	sendTraceMessage("WEEEEEEEEEEE AREEEEEEEEEEEEE GETTTTTTTTTTTTING ENEMY INFO!!!", "MULTIPLAYER")
 	local score = MP.INSANE_INT.from_string(score_str)
 
 	local hands_left = tonumber(hands_left_str)
 	local skips = tonumber(skips_str)
 	local lives = tonumber(lives_str)
 
-	if MP.GAME.enemy.skips ~= skips then
-		for i = 1, skips - MP.GAME.enemy.skips do
-			MP.GAME.enemy.spent_in_shop[#MP.GAME.enemy.spent_in_shop + 1] = 0
+	if MP.GAME.enemies[id].skips ~= skips then
+		for i = 1, skips - MP.GAME.enemies[id].skips do
+			MP.GAME.enemies[id].spent_in_shop[#MP.GAME.enemies[id].spent_in_shop + 1] = 0
 		end
 	end
 
@@ -319,14 +319,14 @@ local function action_enemy_info(score_str, hands_left_str, skips_str, lives_str
 		return
 	end
 
-	if MP.INSANE_INT.greater_than(score, MP.GAME.enemy.highest_score) then MP.GAME.enemy.highest_score = score end
+	if MP.INSANE_INT.greater_than(score, MP.GAME.enemies[id].highest_score) then MP.GAME.enemies[id].highest_score = score end
 
 	G.E_MANAGER:add_event(Event({
 		blockable = false,
 		blocking = false,
 		trigger = "ease",
 		delay = 3,
-		ref_table = MP.GAME.enemy.score,
+		ref_table = MP.GAME.enemies[id].score,
 		ref_value = "e_count",
 		ease_to = score.e_count,
 		func = function(t)
@@ -339,7 +339,7 @@ local function action_enemy_info(score_str, hands_left_str, skips_str, lives_str
 		blocking = false,
 		trigger = "ease",
 		delay = 3,
-		ref_table = MP.GAME.enemy.score,
+		ref_table = MP.GAME.enemies[id].score,
 		ref_value = "coeffiocient",
 		ease_to = score.coeffiocient,
 		func = function(t)
@@ -352,7 +352,7 @@ local function action_enemy_info(score_str, hands_left_str, skips_str, lives_str
 		blocking = false,
 		trigger = "ease",
 		delay = 3,
-		ref_table = MP.GAME.enemy.score,
+		ref_table = MP.GAME.enemies[id].score,
 		ref_value = "exponent",
 		ease_to = score.exponent,
 		func = function(t)
@@ -360,14 +360,14 @@ local function action_enemy_info(score_str, hands_left_str, skips_str, lives_str
 		end,
 	}))
 
-	if MP.GAME.enemy.lives > lives then
+	if MP.GAME.enemies[id].lives > lives then
 		play_sound("holo1", 0.865, 0.9)
 		play_sound("gong", 0.765, 0.4)
 	end
 
-	MP.GAME.enemy.hands = hands_left
-	MP.GAME.enemy.skips = skips
-	MP.GAME.enemy.lives = lives
+	MP.GAME.enemies[id].hands = hands_left
+	MP.GAME.enemies[id].skips = skips
+	MP.GAME.enemies[id].lives = lives
 	if MP.UI.juice_up_pvp_hud then MP.UI.juice_up_pvp_hud() end
 end
 
@@ -534,6 +534,9 @@ local function action_speedrun()
 end
 
 local function enemyLocation(options)
+	if MP.GAME.enemies[options.id] == nil then
+		MP.initiate_enemies()
+	end
 	local location = options.location
 	local value = ""
 
@@ -563,7 +566,7 @@ local function enemyLocation(options)
 		end
 	end
 
-	MP.GAME.enemy.location = loc_location .. value
+	MP.GAME.enemies[options.id].location = loc_location .. value
 end
 
 local function action_version()
@@ -1264,6 +1267,7 @@ function Game:update(dt)
 			elseif parsedAction.action == "lobbyInfo" then
 				action_lobbyInfo(
 					parsedAction.host,
+					parsedAction.hostId,
 					parsedAction.hostHash,
 					parsedAction.hostCached,
 					parsedAction.players,

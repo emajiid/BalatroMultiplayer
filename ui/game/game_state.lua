@@ -36,6 +36,7 @@ function Game:update_draw_to_hand(dt)
 								else
 									blind_name_string = {
 										{
+											-- ME TODO: change display name
 											ref_table = MP.LOBBY.is_host and MP.LOBBY.guest or MP.LOBBY.host,
 											ref_value = "username",
 										},

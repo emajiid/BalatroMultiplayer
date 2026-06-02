@@ -193,6 +193,36 @@ function MP.reset_lobby_config(persist_ruleset_and_gamemode)
 end
 MP.reset_lobby_config()
 
+function MP.initiate_enemies()
+	sendTraceMessage("INITIATING ENEMIES!!!", "MULTIPLAYER")
+	MP.GAME.enemies[MP.LOBBY.host.id] = {
+			score = MP.INSANE_INT.empty(),
+			score_text = "0",
+			hands = 4,
+			location = localize("loc_selecting"),
+			skips = 0,
+			lives = MP.LOBBY.config.starting_lives,
+			sells = 0,
+			sells_per_ante = {},
+			spent_in_shop = {},
+			highest_score = MP.INSANE_INT.empty(),
+		}
+	for i, player in pairs(MP.LOBBY.players) do
+		MP.GAME.enemies[i] = {
+			score = MP.INSANE_INT.empty(),
+			score_text = "0",
+			hands = 4,
+			location = localize("loc_selecting"),
+			skips = 0,
+			lives = MP.LOBBY.config.starting_lives,
+			sells = 0,
+			sells_per_ante = {},
+			spent_in_shop = {},
+			highest_score = MP.INSANE_INT.empty(),
+		}
+	end
+end
+
 function MP.reset_game_states()
 	sendDebugMessage("Resetting game states", "MULTIPLAYER")
 	MP.GAME = {
@@ -217,6 +247,7 @@ function MP.reset_game_states()
 			spent_in_shop = {},
 			highest_score = MP.INSANE_INT.empty(),
 		},
+		enemies = {},
 		location = "loc_selecting",
 		next_blind_context = nil,
 		ante_key = tostring(math.random()),

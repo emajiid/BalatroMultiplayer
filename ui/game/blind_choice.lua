@@ -139,6 +139,7 @@ function create_UIBox_blind_choice(type, run_info)
 			if MP.GHOST.is_active() then
 				loc_name = MP.GHOST.get_nemesis_name()
 			else
+				-- ME TODO: this displays the nemesis name
 				loc_name = MP.LOBBY.is_host and MP.LOBBY.guest.username or MP.LOBBY.host.username
 			end
 		else
