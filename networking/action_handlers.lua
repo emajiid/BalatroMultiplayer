@@ -49,7 +49,8 @@ local function action_connected()
 	end
 end
 
-local function action_joinedLobby(code, type, token)
+local function action_joinedLobby(id, code, type, token)
+	MP.LOBBY.id = id
 	MP.LOBBY.code = code
 	MP.LOBBY.type = type
 	MP.LOBBY.ready_to_start = false
@@ -192,23 +193,23 @@ local function action_lobbyInfo(host, hostHash, hostCached, players, is_host)
 			local player = MP.UTILS.string_to_table(k, ">", "-")
 
 			if player.username then
-				sendTraceMessage("WE MADE IT!!!!!" .. players, "MULTIPLAYER")
 				local playerName, playerCol = parseName(MP.UTILS.postProcessStringFromNetwork(player.username))
 				local playerConfig, playerMods = MP.UTILS.parse_Hash(MP.UTILS.postProcessStringFromNetwork(player.hash))
 
 				if MP.UTILS.postProcessStringFromNetwork(player.ready) == "false" then
 					players_ready = false
 				end
-				sendTraceMessage("USERNAME BEFORE! " .. player.username, "MULTIPLAYER")
-				table.insert(MP.LOBBY.players, {
+				sendTraceMessage("ID FROM JOIN " .. MP.LOBBY.id, "MULTIPLAYER")
+				sendTraceMessage("ID FROM LOBBY " .. player.id, "MULTIPLAYER")
+				MP.LOBBY.players[player.id]={
 						username = MP.UTILS.postProcessStringFromNetwork(player.username),
 						blind_col = playerCol,
 						hash_str = playerMods,
 						hash = hash(playerMods),
 						cached = MP.UTILS.postProcessStringFromNetwork(player.cached) == "true",
+						ready = MP.UTILS.postProcessStringFromNetwork(player.ready) == "true",
 						config = playerConfig
-					})
-				sendTraceMessage("USERNAME AFTER! " .. MP.LOBBY.players[1].username, "MULTIPLAYER")
+					}
 			end
 		end
 	else
@@ -1253,7 +1254,7 @@ function Game:update(dt)
 			elseif parsedAction.action == "reconnecting" then
 				action_reconnecting()
 			elseif parsedAction.action == "joinedLobby" then
-				action_joinedLobby(parsedAction.code, parsedAction.type, parsedAction.reconnectToken)
+				action_joinedLobby(parsedAction.id, parsedAction.code, parsedAction.type, parsedAction.reconnectToken)
 			elseif parsedAction.action == "rejoinedLobby" then
 				action_rejoinedLobby(parsedAction.code, parsedAction.type, parsedAction.reconnectToken)
 			elseif parsedAction.action == "enemyDisconnected" then

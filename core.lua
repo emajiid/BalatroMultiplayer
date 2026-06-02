@@ -17,6 +17,7 @@ MP.LOBBY = {
 	temp_seed = "",
 	code = nil,
 	type = "",
+	id = "",
 	config = {}, -- Now set in MP.reset_lobby_config
 	deck = {
 		back = "Red Deck",

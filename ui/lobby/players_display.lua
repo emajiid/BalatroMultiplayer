@@ -26,7 +26,7 @@ end
 function MP.UI.create_players_section(text_scale)
 	local player_rows = {create_player_info_row(MP.LOBBY.host, "host", text_scale, 0)}
 	sendTraceMessage("PRINTING OUT NAMES FOR UI ", "MULTIPLAYER")
-	for i, player in ipairs(MP.LOBBY.players) do
+	for i, player in pairs(MP.LOBBY.players) do
 		sendTraceMessage("NAME NUMBER: " .. i .. player.username, "MULTIPLAYER")
 		table.insert(player_rows, create_player_info_row(player, "guest", text_scale, i))
 	end

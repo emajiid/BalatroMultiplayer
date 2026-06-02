@@ -137,10 +137,16 @@ function MP.UI.create_lobby_main_button(text_scale)
 			enabled_ref_value = "ready_to_start",
 		})
 	else
+		local player = MP.LOBBY.players[MP.LOBBY.id]
+		local ready = false
+		if player ~= nil then
+			ready = player.ready
+		end
+		
 		return UIBox_button({
 			id = "lobby_menu_start",
 			button = "lobby_ready_up",
-			colour = MP.LOBBY.ready_to_start and G.C.GREEN or G.C.RED,
+			colour = ready and G.C.GREEN or G.C.RED,
 			minw = 3.65,
 			minh = 1.55,
 			label = { MP.LOBBY.ready_to_start and localize("b_unready") or localize("b_ready") },
